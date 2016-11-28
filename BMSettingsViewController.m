@@ -1,10 +1,10 @@
 #import <QuartzCore/QuartzCore.h>
+#import <MessageUI/MFMailComposeViewController.h>
+#import <sys/utsname.h>
 #import "BMRootViewController.h"
 #import "BMRepoViewController.h"
 #import "BMSettingsViewController.h"
 #import "NSTask.h"
-#import <MessageUI/MFMailComposeViewController.h>
-#import <sys/utsname.h>
 
 @interface BMSettingsViewController()
 

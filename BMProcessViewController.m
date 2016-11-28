@@ -1,7 +1,7 @@
 #import <QuartzCore/QuartzCore.h>
+#import "NSTask.h"
 #import "BMRootViewController.h"
 #import "BMProcessViewController.h"
-#import "NSTask.h"
 
 @implementation BMProcessViewController {
     bool success;
@@ -142,14 +142,14 @@
 - (void)downloadData: (int)i : (int)j : (int)k : (NSString *)installation {
     if ([installation isEqualToString:@"Install"]) {
         [self writeTextView:[NSString stringWithFormat:[self BMLocalizedString:@"Downloading %@..."],[self getFullID:i:j:k]]];
-        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/iOS/Install/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
+        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMDRepository/raw/master/Install/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
         while (!downloadFinished) {}
         if (success) {
             [self writeTextView:[NSString stringWithFormat:@"%@\n",[self BMLocalizedString:@"Done"]]];
         }
     } else if ([installation isEqualToString:@"Remove"]) {
         [self writeTextView:[NSString stringWithFormat:[self BMLocalizedString:@"Downloading the removal data of %@..."],[self getFullID:i:j:k]]];
-        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/iOS/Remove/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
+        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/master/Remove/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
         while (!downloadFinished) {}
         if (success) {
             [self writeTextView:[NSString stringWithFormat:@"%@\n",[self BMLocalizedString:@"Done"]]];

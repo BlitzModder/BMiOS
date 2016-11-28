@@ -49,10 +49,12 @@
 		}
 	}
 
+	self.title = [self BMLocalizedString:@"Confirm"];
+
     self.tableView.allowsMultipleSelection = NO;
-    self.title = [self BMLocalizedString:@"Confirm"];
     self.tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
     self.tableView.backgroundColor = [UIColor groupTableViewBackgroundColor];
+	
     self.navigationItem.hidesBackButton = YES;
 	self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Cancel"] style:UIBarButtonItemStyleDone target:self action:@selector(backToRootView:)];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Confirm"] style:UIBarButtonItemStyleDone target:self action:@selector(confirmButtonTapped:)];

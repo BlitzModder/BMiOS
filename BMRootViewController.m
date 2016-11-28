@@ -1,4 +1,5 @@
 #import <QuartzCore/QuartzCore.h>
+#import "NSTask.h"
 #import "BMAppDelegate.h"
 #import "BMRootViewController.h"
 #import "BMSecondViewController.h"
@@ -6,7 +7,6 @@
 #import "BMSettingsViewController.h"
 #import "BMListViewController.h"
 #import "BMConfirmationViewController.h"
-#import "NSTask.h"
 #import "OrderedDictionary.h"
 #import "SVProgressHUD/SVProgressHUD.h"
 
@@ -297,7 +297,7 @@
     [self makeRepoDirectory:repoArray[currentRepo]];
     NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
-    NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/iOS/%@.plist",repoArray[currentRepo],languageArray[appLanguage]]];
+    NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/master/%@.plist",repoArray[currentRepo],languageArray[appLanguage]]];
     NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL
                                         completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
                                             finished = YES;
@@ -375,7 +375,7 @@
     NSArray  *iOSVersions = [[[UIDevice currentDevice]systemVersion] componentsSeparatedByString:@"."];
     NSInteger iOSVersionMajor = [iOSVersions[0] intValue];
     NSInteger iOSVersionMinor = [iOSVersions[1] intValue];
-    if ((iOSVersionMajor == 9 && iOSVersionMinor < 3) || iOSVersionMajor == 8) {
+    if (iOSVersionMajor == 9 && iOSVersionMinor < 3) {
         appsPath = @"/var/mobile/Containers/Bundle/Application";
     } else if ((iOSVersionMajor == 9 && iOSVersionMinor >= 3) || iOSVersionMajor > 9) {
         appsPath = @"/var/containers/Bundle/Application";
