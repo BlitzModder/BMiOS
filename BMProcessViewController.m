@@ -142,7 +142,7 @@
 - (void)downloadData: (int)i : (int)j : (int)k : (NSString *)installation {
     if ([installation isEqualToString:@"Install"]) {
         [self writeTextView:[NSString stringWithFormat:[self BMLocalizedString:@"Downloading %@..."],[self getFullID:i:j:k]]];
-        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMDRepository/raw/master/Install/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
+        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/master/Install/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
         while (!downloadFinished) {}
         if (success) {
             [self writeTextView:[NSString stringWithFormat:@"%@\n",[self BMLocalizedString:@"Done"]]];
