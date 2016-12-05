@@ -50,8 +50,8 @@
 
 	[self getUserDefaults];
 
-	if (repoArray[0] != @"BlitzModder") {
-		repoArray = @[@"BlitzModder"];
+	if (![repoArray[0] isEqualToString:@"BlitzModder"]) {
+		repoArray[0] = @"BlitzModder";
 		[self saveUserDefaults];
 	}
 
