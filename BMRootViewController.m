@@ -38,7 +38,7 @@
 	// initialize NSUserDefaults
     NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
     [defaults setObject:@"0" forKey:@"appLanguage"];
-    [defaults setObject:@[@"subdiox"] forKey:@"repoArray"];
+    [defaults setObject:@[@"BlitzModder"] forKey:@"repoArray"];
 	[defaults setObject:@"0" forKey:@"currentRepo"];
 	[defaults setObject:[NSMutableArray array] forKey:@"modCategoryArray"];
 	[defaults setObject:[NSMutableArray array] forKey:@"modNameArray"];
@@ -49,6 +49,11 @@
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 
 	[self getUserDefaults];
+
+	if (repoArray[0] != @"BlitzModder") {
+		repoArray = @[@"BlitzModder"];
+		[self saveUserDefaults];
+	}
 
 	savePath = @"/var/root/Library/Caches/BlitzModder";
 
@@ -197,7 +202,7 @@
 - (void)checkForUpdate {
     NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
-    NSURL *requestURL = [NSURL URLWithString:@"https://github.com/subdiox/BlitzModder-iOS/raw/master/version"];
+    NSURL *requestURL = [NSURL URLWithString:@"https://github.com/BlitzModder/BlitzModder-iOS/raw/master/version"];
     NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL
                                         completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 											if (!error) {

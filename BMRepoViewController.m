@@ -93,7 +93,7 @@
                                                                        message:nil
                                                                 preferredStyle:UIAlertControllerStyleAlert];
     [textAlert addTextFieldWithConfigurationHandler:^(UITextField *textField){
-        textField.placeholder = @"subdiox";
+        textField.placeholder = @"BlitzModder";
     }];
     UIAlertAction *keywordOkAction = [UIAlertAction actionWithTitle:@"OK"
                                                               style:UIAlertActionStyleDefault
