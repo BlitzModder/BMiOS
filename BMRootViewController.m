@@ -202,7 +202,7 @@
 - (void)checkForUpdate {
     NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
-    NSURL *requestURL = [NSURL URLWithString:@"https://github.com/BlitzModder/BlitzModder-iOS/raw/master/version"];
+    NSURL *requestURL = [NSURL URLWithString:@"https://github.com/BlitzModder/BMiOS/raw/master/version"];
     NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL
                                         completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 											if (!error) {
