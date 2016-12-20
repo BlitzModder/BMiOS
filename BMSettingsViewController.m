@@ -91,7 +91,7 @@
     } else if (section == 1) {
         return 1;
     } else if (section == 2) {
-		return 2;
+		return 3;
 	} else if (section == 3) {
 		return 1;
 	}
@@ -142,13 +142,17 @@
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         }
 		if (indexPath.row == 0) {
-			cell.textLabel.text = [self BMLocalizedString:@"Reset All Settings"];
-			cell.textLabel.textColor = [UIColor redColor];
-			cell.detailTextLabel.text = [self BMLocalizedString:@"Tap here after you update Blitz or when something is wrong"];
-			cell.detailTextLabel.textColor = [UIColor grayColor];
-		} else if (indexPath.row == 1) {
 			cell.textLabel.text = [self BMLocalizedString:@"Website"];
 			cell.detailTextLabel.text = [self BMLocalizedString:@"Tap here to refer to the usage of BlitzModder"];
+			cell.detailTextLabel.textColor = [UIColor grayColor];
+		} else if (indexPath.row == 1) {
+			cell.textLabel.text = [self BMLocalizedString:@"Reset Installation"];
+			cell.detailTextLabel.text = [self BMLocalizedString:@"Tap here when Blitz is updated"];
+			cell.detailTextLabel.textColor = [UIColor grayColor];
+		} else if (indexPath.row == 2) {
+			cell.textLabel.text = [self BMLocalizedString:@"Reset All Settings"];
+			cell.textLabel.textColor = [UIColor redColor];
+			cell.detailTextLabel.text = [self BMLocalizedString:@"Tap here when something is wrong with BlitzModder"];
 			cell.detailTextLabel.textColor = [UIColor grayColor];
 		}
 
@@ -180,6 +184,18 @@
         [self.navigationController pushViewController:repoViewController animated:YES];
     } else if (indexPath.section == 2) {
 		if (indexPath.row == 0) {
+			NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://subdiox.com/blitzmodder/%@/index.html",languageArray[appLanguage]]];
+			[[UIApplication sharedApplication] openURL:url];
+		} else if (indexPath.row == 1) {
+			[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+			UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Notice"] message:[self BMLocalizedString:@"Do you want to reset installation?"] preferredStyle:UIAlertControllerStyleAlert];
+			[alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Cancel"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+			}]];
+			[alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+				[self resetInstallation];
+			}]];
+			[self presentViewController:alertController animated:YES completion:nil];
+		} else if (indexPath.row == 2) {
 			[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 			UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Warning"] message:[self BMLocalizedString:@"Do you want to reset ALL settings?"] preferredStyle:UIAlertControllerStyleAlert];
 			[alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Cancel"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -189,9 +205,6 @@
 				[self removeTempDir];
 			}]];
 			[self presentViewController:alertController animated:YES completion:nil];
-		} else if (indexPath.row == 1) {
-			NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://subdiox.com/blitzmodder/%@/index.html",languageArray[appLanguage]]];
-			[[UIApplication sharedApplication] openURL:url];
 		}
 	} else if (indexPath.section == 3) {
 		[self contactButtonTapped];
@@ -205,6 +218,12 @@
 		[defaults removeObjectForKey:key];
 	}
 	[defaults synchronize];
+}
+
+- (void)resetInstallation {
+	NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+	[ud setObject:[NSArray array] forKey:@"installedArray"];
+	[ud synchronize];
 }
 
 - (void)removeTempDir {
@@ -262,7 +281,6 @@
     return [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
 }
 
-// アプリ内メーラーのデリゲートメソッド
 - (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
     switch (result) {
         case MFMailComposeResultCancelled:
