@@ -326,11 +326,22 @@
 													modCategoryArray = [[dic allKeys] mutableCopy];
 													for (id key1 in [dic allKeys]) {
 														[modNameArray addObject:[dic[key1] allKeys]];
-														NSMutableArray *tempArray = [NSMutableArray array];
+														NSMutableArray *tempDetailArray = [NSMutableArray array];
 														for (id key2 in [dic[key1] allKeys]) {
-															[tempArray addObject:[[dic[key1][key2] allKeys] mutableCopy]];
+															NSMutableArray *keysArray = [[dic[key1][key2] allKeys] mutableCopy];
+															NSMutableArray *valuesArray = [[dic[key1][key2] allValues] mutableCopy];
+															int i = 0;
+															int removed = 0;
+															while (i < valuesArray.count) {
+																if (![self checkValidate:valuesArray[i]]) {
+																	[keysArray removeObjectAtIndex:i - removed];
+																	removed += 1;
+																}
+																i += 1;
+															}
+															[tempDetailArray addObject:keysArray];
 														}
-														[modDetailArray addObject:tempArray];
+														[modDetailArray addObject:tempDetailArray];
 													}
 													[self saveUserDefaults];
 													dispatch_async(dispatch_get_main_queue(), ^{
@@ -342,6 +353,31 @@
 											}
 										}];
     [task resume];
+}
+
+- (NSString *)getBlitzVersion {
+	NSString *versionPath = [NSString stringWithFormat:@"%@/Data/version.txt",blitzPath];
+    NSString *fullVersion = [NSString stringWithContentsOfFile:versionPath encoding:NSUTF8StringEncoding error:nil];
+	NSArray *versionArray = [fullVersion componentsSeparatedByString:@"."];
+	return [NSString stringWithFormat:@"%@.%@.%@",versionArray[0],versionArray[1],versionArray[2]];
+}
+
+- (BOOL)checkValidate :(NSString *)string {
+	NSArray *stringArray = [string componentsSeparatedByString:@":"];
+	if (stringArray.count == 2) {
+		if ([self convertVersion:stringArray[0]] == [self convertVersion:[self getBlitzVersion]]) {
+			NSRange range = [stringArray[1] rangeOfString:@"i"];
+			if (range.location != NSNotFound) {
+				return YES;
+			} else {
+				return NO;
+			}
+		} else {
+			return NO;
+		}
+	} else {
+		return YES;
+	}
 }
 
 - (NSString *)getFullString :(int)i :(int)j :(int)k {
