@@ -230,7 +230,7 @@
 	NSArray *versionArray = [version componentsSeparatedByString:@"."];
 	double converted = 0;
 	for (int i = 0; i < versionArray.count; i++) {
-		converted += [versionArray[i] doubleValue] * pow(10.0, (double)i);
+		converted += [versionArray[i] doubleValue] * pow(10.0, -(double)i);
 	}
 	return converted;
 }
