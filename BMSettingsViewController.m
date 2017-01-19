@@ -184,7 +184,7 @@
         [self.navigationController pushViewController:repoViewController animated:YES];
     } else if (indexPath.section == 2) {
 		if (indexPath.row == 0) {
-			NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://subdiox.com/blitzmodder/%@/index.html",languageArray[appLanguage]]];
+			NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder"];
 			[[UIApplication sharedApplication] openURL:url];
 		} else if (indexPath.row == 1) {
 			[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
