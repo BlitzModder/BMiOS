@@ -365,7 +365,7 @@
 - (BOOL)checkValidate :(NSString *)string {
 	NSArray *stringArray = [string componentsSeparatedByString:@":"];
 	if (stringArray.count == 2) {
-		if ([self convertVersion:stringArray[0]] == [self convertVersion:[self getBlitzVersion]]) {
+		if ([self convertVersion:stringArray[0]] >= [self convertVersion:[self getBlitzVersion]]) {
 			NSRange range = [stringArray[1] rangeOfString:@"i"];
 			if (range.location != NSNotFound) {
 				return YES;

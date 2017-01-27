@@ -4,7 +4,7 @@ Name: BlitzModder
 Package: com.subdiox.blitzmodder
 Depends: coreutils-bin,unzip
 Section: Utilities
-Version: 2.4.1
+Version: 2.4.2
 Architecture: iphoneos-arm
 Description: Mod Manager for World of Tanks Blitz
 Depiction: Mod Manager for Blitz
