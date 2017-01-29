@@ -324,22 +324,34 @@
 													modNameArray = [NSMutableArray array];
 													modDetailArray = [NSMutableArray array];
 													modCategoryArray = [[dic allKeys] mutableCopy];
-													for (id key1 in [dic allKeys]) {
+													for (int i = 0; i < modCategoryArray.count; i++) {
+                                                        NSString *key1 = modCategoryArray[i];
 														[modNameArray addObject:[dic[key1] allKeys]];
 														NSMutableArray *tempDetailArray = [NSMutableArray array];
-														for (id key2 in [dic[key1] allKeys]) {
-															NSMutableArray *keysArray = [[dic[key1][key2] allKeys] mutableCopy];
-															NSMutableArray *valuesArray = [[dic[key1][key2] allValues] mutableCopy];
-															int i = 0;
+														for (int j = 0; j < [modNameArray[i] count]; j++) {
+                                                            NSString *key2 = modNameArray[i][j];
+                                                            NSMutableArray *keysArray = [NSMutableArray array];
+                                                            NSMutableArray *valuesArray = [NSMutableArray array];
+															keysArray = [[dic[key1][key2] allKeys] mutableCopy];
+															valuesArray = [[dic[key1][key2] allValues] mutableCopy];
+															int current = 0;
 															int removed = 0;
-															while (i < valuesArray.count) {
-																if (![self checkValidate:valuesArray[i]]) {
-																	[keysArray removeObjectAtIndex:i - removed];
+															while (current < valuesArray.count) {
+																if (![self checkValidate:valuesArray[current]]) {
+																	[keysArray removeObjectAtIndex:current - removed];
 																	removed += 1;
 																}
-																i += 1;
+																current += 1;
 															}
-															[tempDetailArray addObject:keysArray];
+                                                            if (keysArray.count == 0) {
+                                                                NSMutableArray *tempNameArray = [NSMutableArray array];
+                                                                tempNameArray = [modNameArray[i] mutableCopy];
+                                                                [tempNameArray removeObjectAtIndex:j];
+                                                                [modNameArray replaceObjectAtIndex:i withObject:tempNameArray];
+                                                                j--;
+                                                            } else {
+                                                                [tempDetailArray addObject:keysArray];
+                                                            }
 														}
 														[modDetailArray addObject:tempDetailArray];
 													}
@@ -508,6 +520,13 @@
 	UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Back"] style:UIBarButtonItemStylePlain target:self action:nil];
     [self.navigationItem setBackBarButtonItem:backButton];
     [self.navigationController pushViewController:secondViewController animated:YES];
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    if([view isKindOfClass:[UITableViewHeaderFooterView class]]){
+        UITableViewHeaderFooterView *tableViewHeaderFooterView = (UITableViewHeaderFooterView *) view;
+        tableViewHeaderFooterView.textLabel.text = [tableViewHeaderFooterView.textLabel.text capitalizedString];
+    }
 }
 
 // deselect row when view appears
