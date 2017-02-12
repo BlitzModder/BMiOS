@@ -1,5 +1,6 @@
 #import "BMRepoViewController.h"
 #import "SVProgressHUD/SVProgressHUD.h"
+#import "NSTask.h"
 
 @interface BMRepoViewController()
 @end
@@ -8,6 +9,7 @@
     NSInteger appLanguage;
     NSArray *languageArray;
     NSMutableArray *repoArray;
+    NSMutableArray *repoNameArray;
     BOOL exists;
     BOOL okRepo;
     BOOL downloaded;
@@ -33,24 +35,74 @@
     appLanguage = [ud integerForKey:@"appLanguage"];
 	languageArray = [ud arrayForKey:@"AppleLanguages"];
     repoArray = [[ud arrayForKey:@"repoArray"] mutableCopy];
+    repoNameArray = [[ud arrayForKey:@"repoNameArray"] mutableCopy];
 }
 
 - (void)saveUserDefaults {
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     [ud setInteger:appLanguage forKey:@"appLanguage"];
     [ud setObject:[repoArray copy] forKey:@"repoArray"];
+    [ud setObject:[repoNameArray copy] forKey:@"repoNameArray"];
     [ud synchronize];
 }
 
-- (void)checkRepo:(NSString *)repo {
+- (NSString *)removeHttp:(NSString *)repo {
+    if ([repo hasPrefix:@"http://"]) {
+        return [repo substringFromIndex:7];
+    } else if ([repo hasPrefix:@"https://"]) {
+        return [repo substringFromIndex:8];
+    } else {
+        return repo;
+    }
+}
+
+- (NSString *)escapeSlash:(NSString *)string {
+    NSArray *array = [string componentsSeparatedByString:@"/"];
+    return [array componentsJoinedByString:@":"];
+}
+
+- (NSString *)escapeRepo:(NSString *)string {
+    return [self escapeSlash:[self removeHttp:string]];
+}
+
+- (NSString *)getFullRepo:(NSString *)repoName {
+    NSString *repo;
+    if ([repoName hasPrefix:@"http://"] || [repoName hasPrefix:@"https://"]) {
+        repo = repoName;
+        if ([repoName hasSuffix:@"/"]) {
+            repo = [repoName substringToIndex:repoName.length - 1];
+        } else {
+            repo = repoName;
+        }
+    } else {
+        NSArray *array = [repo componentsSeparatedByString:@"/"];
+        if (array.count == 1) {
+            repo = [NSString stringWithFormat:@"http://%@.github.io/BMRepository", array[0]];
+        } else if (array.count == 2) {
+            repo = [NSString stringWithFormat:@"http://%@.github.io/%@", array[0], array[1]];
+        } else {
+            repo = @"error";
+        }
+    }
+    return repo;
+}
+
+- (void)checkRepo:(NSString *)repoName {
     checked = NO;
     okRepo = NO;
-	for (int i = 0; i < [languageArray count]; i++) {
+    NSString *repo = [self getFullRepo:repoName];
+    if ([repo isEqualToString:@"error"]) {
+        [self showError:[self BMLocalizedString:@"Repository format is incorrect. Please input correctly."]];
+        return;
+    }
+    NSMutableArray *tryArray = [languageArray mutableCopy];
+    [tryArray exchangeObjectAtIndex:0 withObjectAtIndex:appLanguage];
+	for (int i = 0; i < [tryArray count]; i++) {
 		downloaded = NO;
 		exists = NO;
 		NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
 		NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
-		NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/master/%@.plist",repo,languageArray[i]]];
+		NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/plist/%@.plist",repo,tryArray[i]]];
 		NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL
 											completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 												if (!error) {
@@ -68,17 +120,71 @@
 											}];
 		[task resume];
 		while (!downloaded) {} // wait for completion of download
-		if (!exists) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				[self showError:[NSString stringWithFormat:[self BMLocalizedString:@"%@.plist does NOT exist! Please contact the owner of this repository."],languageArray[i]]];
-			});
-			checked = YES;
-			okRepo = NO;
-			return;
-		}
+		if (exists) {
+            checked = YES;
+        	okRepo = YES;
+            [repoNameArray addObject:[self getRepoInfo:repo]];
+            return;
+        } else {
+            if (i == [tryArray count] - 1) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+    				[self showError:[self BMLocalizedString:@"This repository is invalid! Please contact the owner of this repository."]];
+    			});
+                checked = YES;
+    			okRepo = NO;
+            }
+        }
 	}
-	checked = YES;
-	okRepo = YES;
+}
+
+- (NSString *)getRepoInfo:(NSString *)repo {
+    __block NSString *string = repo;
+    __block bool finished;
+    NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
+    NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/info.plist", repo]];
+    NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL
+                                        completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+											if (!error) {
+												NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
+												if (statusCode != 404) {
+                                                    [self makeRepoDirectory:[self escapeRepo:repo]];
+                                                    NSFileManager *fm = [NSFileManager defaultManager];
+	                                                NSString *filePath = [NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@/info.plist",[self escapeRepo:repo]];
+	                                                [fm createFileAtPath:filePath contents:data attributes:nil];
+	                                                NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
+	                                                [file writeData:data];
+													NSDictionary *dic = [[NSDictionary alloc] initWithContentsOfFile:filePath];
+                                                    string = [dic objectForKey:@"name"];
+                                                }
+                                            }
+                                            finished = YES;
+                                        }];
+    [task resume];
+    while (!finished) {}
+    return string;
+}
+
+// make a directory to save repo files
+- (void)makeRepoDirectory:(NSString *)repo {
+    NSTask *task = [[NSTask alloc] init];
+    NSPipe *pipe = [NSPipe pipe];
+    [task setStandardOutput:pipe];
+    NSPipe *errPipe = [NSPipe pipe];
+    [task setStandardError:errPipe];
+    [task setLaunchPath: @"/bin/mkdir"];
+    [task setStandardOutput:pipe];
+    [task setArguments:[NSArray arrayWithObjects:@"-p",[NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@", repo], nil]];
+    [task launch];
+    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
+    data = [[errPipe fileHandleForReading] readDataToEndOfFile];
+    if (data != nil && [data length]) {
+        NSString *strErr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Error"] message:strErr preferredStyle:UIAlertControllerStyleAlert];
+        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        }]];
+        [self presentViewController:alertController animated:YES completion:nil];
+    }
 }
 
 - (void)showError:(NSString *)errorMessage {
@@ -93,7 +199,7 @@
                                                                        message:nil
                                                                 preferredStyle:UIAlertControllerStyleAlert];
     [textAlert addTextFieldWithConfigurationHandler:^(UITextField *textField){
-        textField.placeholder = @"BlitzModder";
+        textField.placeholder = @"http://subdiox.com/repo";
     }];
     UIAlertAction *keywordOkAction = [UIAlertAction actionWithTitle:@"OK"
                                                               style:UIAlertActionStyleDefault
@@ -152,15 +258,21 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 
     if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
-    cell.textLabel.text = repoArray[indexPath.row];
+    NSLog(@"repoNameArray: %@", repoNameArray);
+    if ([repoNameArray count] > indexPath.row) {
+        cell.textLabel.text = repoNameArray[indexPath.row];
+    }
+    cell.detailTextLabel.text = repoArray[indexPath.row];
+    cell.detailTextLabel.textColor = [UIColor grayColor];
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     [repoArray removeObjectAtIndex:indexPath.row];
+    [repoNameArray removeObjectAtIndex:indexPath.row];
     [tableView deleteRowsAtIndexPaths:@[ indexPath ] withRowAnimation:UITableViewRowAnimationAutomatic];
     [self saveUserDefaults];
 }

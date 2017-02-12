@@ -142,14 +142,14 @@
 - (void)downloadData: (int)i : (int)j : (int)k : (NSString *)installation {
     if ([installation isEqualToString:@"Install"]) {
         [self writeTextView:[NSString stringWithFormat:[self BMLocalizedString:@"Downloading %@..."],[self getFullID:i:j:k]]];
-        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/master/Install/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
+        [self download:[NSString stringWithFormat:@"%@/install/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
         while (!downloadFinished) {}
         if (success) {
             [self writeTextView:[NSString stringWithFormat:@"%@\n",[self BMLocalizedString:@"Done"]]];
         }
     } else if ([installation isEqualToString:@"Remove"]) {
         [self writeTextView:[NSString stringWithFormat:[self BMLocalizedString:@"Downloading the removal data of %@..."],[self getFullID:i:j:k]]];
-        [self download:[NSString stringWithFormat:@"https://github.com/%@/BMRepository/raw/master/Remove/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
+        [self download:[NSString stringWithFormat:@"%@/remove/%@.zip",repoArray[currentRepo],[self getFullID:i:j:k]]];
         while (!downloadFinished) {}
         if (success) {
             [self writeTextView:[NSString stringWithFormat:@"%@\n",[self BMLocalizedString:@"Done"]]];
@@ -330,7 +330,27 @@
 }
 
 - (NSString *)getSaveID :(int)i :(int)j :(int)k {
-	return [NSString stringWithFormat:@"%@.%@",repoArray[currentRepo],[self getFullID:i:j:k]];
+	return [NSString stringWithFormat:@"%@.%@",[self escapeRepo:repoArray[currentRepo]],[self getFullID:i:j:k]];
+}
+
+- (NSString *)removeHttp:(NSString *)repo {
+    if ([repo hasPrefix:@"http://"]) {
+        return [repo substringFromIndex:7];
+    } else if ([repo hasPrefix:@"https://"]) {
+        return [repo substringFromIndex:8];
+    } else {
+        return repo;
+    }
+}
+
+- (NSString *)escapeSlash:(NSString *)string {
+    NSArray *array = [string componentsSeparatedByString:@"/"];
+    return [array componentsJoinedByString:@":"];
+
+}
+
+- (NSString *)escapeRepo:(NSString *)string {
+    return [self escapeSlash:[self removeHttp:string]];
 }
 
 - (NSString *)getString:(NSString *)string{

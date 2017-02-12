@@ -113,7 +113,27 @@
 }
 
 - (NSString *)getSaveID :(int)i :(int)j :(int)k {
-	return [NSString stringWithFormat:@"%@.%@",repoArray[currentRepo],[self getFullID:i:j:k]];
+	return [NSString stringWithFormat:@"%@.%@",[self escapeRepo:repoArray[currentRepo]],[self getFullID:i:j:k]];
+}
+
+- (NSString *)removeHttp:(NSString *)repo {
+    if ([repo hasPrefix:@"http://"]) {
+        return [repo substringFromIndex:7];
+    } else if ([repo hasPrefix:@"https://"]) {
+        return [repo substringFromIndex:8];
+    } else {
+        return repo;
+    }
+}
+
+- (NSString *)escapeSlash:(NSString *)string {
+    NSArray *array = [string componentsSeparatedByString:@"/"];
+    return [array componentsJoinedByString:@":"];
+
+}
+
+- (NSString *)escapeRepo:(NSString *)string {
+    return [self escapeSlash:[self removeHttp:string]];
 }
 
 - (NSString *)getString:(NSString *)string{

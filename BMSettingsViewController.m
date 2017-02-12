@@ -14,9 +14,11 @@
     NSInteger appLanguage;
     NSArray *languageArray;
 	NSInteger currentRepo;
-	NSArray *repoArray;
+	NSMutableArray *repoArray;
+    NSMutableArray *repoNameArray;
 }
 - (void)loadView {
+    NSLog(@"BMSettingsViewController:loadView.start");
 	[super loadView];
     [self getUserDefaults];
     self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
@@ -28,9 +30,11 @@
 
 	self.navigationItem.hidesBackButton = YES;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Done"] style:UIBarButtonItemStyleDone target:self action:@selector(doneButtonTapped:)];
+    NSLog(@"BMSettingsViewController:loadView.finish");
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    NSLog(@"BMSettingsViewController:viewWillAppear.start");
 	[super viewWillAppear:animated];
 	UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:appLanguage inSection:0]];
     cell.accessoryType = UITableViewCellAccessoryCheckmark;
@@ -38,6 +42,7 @@
 	if (indexPath.section == 1) {
 		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 	}
+    NSLog(@"BMSettingsViewController:viewWillAppear.finish");
 }
 
 - (NSString *)BMLocalizedString:(NSString *)key {
@@ -51,6 +56,7 @@
 }
 
 - (void)backToRootView {
+    NSLog(@"BMSettingsViewController:backToRootView.start");
     CATransition* transition = [CATransition animation];
     transition.duration = 0.5;
     transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
@@ -63,6 +69,7 @@
 	}
 	[self saveUserDefaults];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"reloadData" object:self];
+    NSLog(@"BMSettingsViewController:backToRootView.finish");
 }
 
 - (void)getUserDefaults {
@@ -70,6 +77,7 @@
     appLanguage = [ud integerForKey:@"appLanguage"];
 	languageArray = [ud arrayForKey:@"AppleLanguages"];
 	repoArray = [[ud arrayForKey:@"repoArray"] mutableCopy];
+    repoNameArray = [[ud arrayForKey:@"repoNameArray"] mutableCopy];
     currentRepo = [ud integerForKey:@"currentRepo"];
 }
 
@@ -77,6 +85,7 @@
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     [ud setInteger:appLanguage forKey:@"appLanguage"];
 	[ud setObject:[repoArray copy] forKey:@"repoArray"];
+    [ud setObject:[repoNameArray copy] forKey:@"repoNameArray"];
     [ud setInteger:currentRepo forKey:@"currentRepo"];
     [ud synchronize];
 }

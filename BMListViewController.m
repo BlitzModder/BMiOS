@@ -4,6 +4,7 @@
 
 @implementation BMListViewController {
     NSMutableArray *repoArray;
+    NSMutableArray *repoNameArray;
     NSInteger appLanguage;
     NSInteger currentRepo;
     NSArray *languageArray;
@@ -59,6 +60,7 @@
     appLanguage = [ud integerForKey:@"appLanguage"];
 	languageArray = [ud arrayForKey:@"AppleLanguages"];
     repoArray = [[ud arrayForKey:@"repoArray"] mutableCopy];
+    repoNameArray = [[ud arrayForKey:@"repoNameArray"] mutableCopy];
     currentRepo = [ud integerForKey:@"currentRepo"];
 }
 
@@ -67,6 +69,7 @@
     [ud setInteger:appLanguage forKey:@"appLanguage"];
     [ud setObject:[repoArray copy] forKey:@"repoArray"];
     [ud setInteger:currentRepo forKey:@"currentRepo"];
+    [ud setObject:[repoNameArray copy] forKey:@"repoNameArray"];
     [ud synchronize];
 }
 
@@ -82,9 +85,11 @@
     static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
     }
-    cell.textLabel.text = repoArray[indexPath.row];
+    cell.textLabel.text = repoNameArray[indexPath.row];
+    cell.detailTextLabel.text = repoArray[indexPath.row];
+    cell.detailTextLabel.textColor = [UIColor grayColor];
     return cell;
 }
 

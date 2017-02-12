@@ -35,7 +35,7 @@
 	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[webView(>=0)]-0-|" options:0 metrics:nil views:views]];
 	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[webView(>=0)]-0-|" options:0 metrics:nil views:views]];
 
-	NSString *urlString = [NSString stringWithFormat:@"https://%@.github.io/BMRepository/Detail/%@/%@",repoArray[currentRepo],languageArray[appLanguage],[self getFullID:indexPath.section:indexPath.row:myIndexPath.row]];
+	NSString *urlString = [NSString stringWithFormat:@"%@/detail/html/%@.html",repoArray[currentRepo],[self getFullID:indexPath.section:indexPath.row:myIndexPath.row]];
 	[webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
 }
 
