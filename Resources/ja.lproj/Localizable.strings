@@ -116,5 +116,19 @@
 	<string>リポジトリの形式が間違っています。正確に入力してください。</string>
 	<key>This repository is invalid! Please contact the owner of this repository.</key>
 	<string>このリポジトリは無効です！リポジトリ管理者に連絡してください。</string>
+	<key>Donation Title</key>
+	<string>寄付のお願い</string>
+	<key>Donation Message</key>
+	<string>BlitzModderをご使用いただきありがとうございます。私は一人でこのアプリとBlitzModder用サーバーを運営しておりますが、実は毎月サーバー代などがかかっております。このアプリを気に入っていただいた方は、寄付をご考慮いただけないでしょうか。Paypalでも寄付できますし、ゲーム内でゴールドを送ることもできます。私はアジアサーバーで'BlitzModder'というIGNでプレイしております。私とフレンドになりたい場合も、遠慮せずフレンドリクエストを送ってください。</string>
+	<key>OK, I will donate</key>
+	<string>寄付する</string>
+	<key>Remind me again</key>
+	<string>あとで答える</string>
+	<key>Never pop up again</key>
+	<string>寄付はしない</string>
+	<key>Donate Developer</key>
+	<string>開発者に寄付する</string>
+	<key>Changes</key>
+	<string>変更点</string>
 </dict>
 </plist>

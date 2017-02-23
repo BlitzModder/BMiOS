@@ -15,7 +15,6 @@
     NSArray *languageArray;
 	NSInteger currentRepo;
 	NSMutableArray *repoArray;
-    NSMutableArray *repoNameArray;
 }
 - (void)loadView {
     NSLog(@"BMSettingsViewController:loadView.start");
@@ -47,7 +46,8 @@
 
 - (NSString *)BMLocalizedString:(NSString *)key {
     NSString *path = [[NSBundle mainBundle] pathForResource:languageArray[appLanguage] ofType:@"lproj"];
-    return [[NSBundle bundleWithPath:path] localizedStringForKey:key value:@"" table:nil];
+    NSString *escapedString = [[NSBundle bundleWithPath:path] localizedStringForKey:key value:@"" table:nil];
+    return [escapedString stringByReplacingOccurrencesOfString:@"\\n" withString: @"\n"];
 }
 
 - (void)doneButtonTapped:(id)sender {
@@ -77,7 +77,6 @@
     appLanguage = [ud integerForKey:@"appLanguage"];
 	languageArray = [ud arrayForKey:@"AppleLanguages"];
 	repoArray = [[ud arrayForKey:@"repoArray"] mutableCopy];
-    repoNameArray = [[ud arrayForKey:@"repoNameArray"] mutableCopy];
     currentRepo = [ud integerForKey:@"currentRepo"];
 }
 
@@ -85,7 +84,6 @@
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     [ud setInteger:appLanguage forKey:@"appLanguage"];
 	[ud setObject:[repoArray copy] forKey:@"repoArray"];
-    [ud setObject:[repoNameArray copy] forKey:@"repoNameArray"];
     [ud setInteger:currentRepo forKey:@"currentRepo"];
     [ud synchronize];
 }
@@ -102,7 +100,7 @@
     } else if (section == 2) {
 		return 3;
 	} else if (section == 3) {
-		return 1;
+		return 2;
 	}
     return 0;
 }
@@ -164,13 +162,16 @@
 			cell.detailTextLabel.text = [self BMLocalizedString:@"Tap here when something is wrong with BlitzModder"];
 			cell.detailTextLabel.textColor = [UIColor grayColor];
 		}
-
 	} else if (indexPath.section == 3) {
 		if (!cell) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         }
-		cell.textLabel.text = [self BMLocalizedString:@"Bug report / Feature request"];
-		cell.textLabel.textColor = [UIColor blueColor];
+        if (indexPath.row == 0) {
+            cell.textLabel.text = [self BMLocalizedString:@"Bug report / Feature request"];
+    		cell.textLabel.textColor = [UIColor blueColor];
+        } else if (indexPath.row == 1) {
+            cell.textLabel.text = [self BMLocalizedString:@"Donate Developer"];
+        }
 	}
     return cell;
 }
@@ -216,7 +217,12 @@
 			[self presentViewController:alertController animated:YES completion:nil];
 		}
 	} else if (indexPath.section == 3) {
-		[self contactButtonTapped];
+        if (indexPath.row == 0) {
+            [self contactButtonTapped];
+        } else if (indexPath.row == 1) {
+            NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder/contact.html"];
+			[[UIApplication sharedApplication] openURL:url];
+        }
 	}
 }
 

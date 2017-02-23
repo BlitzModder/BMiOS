@@ -10,6 +10,7 @@
     NSArray *languageArray;
     NSMutableArray *repoArray;
     NSMutableArray *repoNameArray;
+    NSMutableArray *repoVersionArray;
     BOOL exists;
     BOOL okRepo;
     BOOL downloaded;
@@ -36,6 +37,7 @@
 	languageArray = [ud arrayForKey:@"AppleLanguages"];
     repoArray = [[ud arrayForKey:@"repoArray"] mutableCopy];
     repoNameArray = [[ud arrayForKey:@"repoNameArray"] mutableCopy];
+    repoVersionArray = [[ud arrayForKey:@"repoVersionArray"] mutableCopy];
 }
 
 - (void)saveUserDefaults {
@@ -43,6 +45,7 @@
     [ud setInteger:appLanguage forKey:@"appLanguage"];
     [ud setObject:[repoArray copy] forKey:@"repoArray"];
     [ud setObject:[repoNameArray copy] forKey:@"repoNameArray"];
+    [ud setObject:[repoVersionArray copy] forKey:@"repoVersionArray"];
     [ud synchronize];
 }
 
@@ -124,6 +127,7 @@
             checked = YES;
         	okRepo = YES;
             [repoNameArray addObject:[self getRepoInfo:repo]];
+            [repoVersionArray addObject:@"0.0.0"];
             return;
         } else {
             if (i == [tryArray count] - 1) {
@@ -261,7 +265,6 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
-    NSLog(@"repoNameArray: %@", repoNameArray);
     if ([repoNameArray count] > indexPath.row) {
         cell.textLabel.text = repoNameArray[indexPath.row];
     }
@@ -273,6 +276,7 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     [repoArray removeObjectAtIndex:indexPath.row];
     [repoNameArray removeObjectAtIndex:indexPath.row];
+    [repoVersionArray removeObjectAtIndex:indexPath.row];
     [tableView deleteRowsAtIndexPaths:@[ indexPath ] withRowAnimation:UITableViewRowAnimationAutomatic];
     [self saveUserDefaults];
 }

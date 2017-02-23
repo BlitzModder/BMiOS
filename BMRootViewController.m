@@ -17,9 +17,11 @@
 @implementation BMRootViewController {
     bool success;
     bool finished;
+    bool neverDonate;
  	int currentRepo;
 	int appLanguage;
     int tryingLanguage;
+    int launchCount;
 	NSString *savePath;
 	NSString *blitzPath;
     NSString *blitzVersion;
@@ -29,6 +31,7 @@
 	NSMutableArray *modCategoryArray;
     NSMutableArray *repoArray;
     NSMutableArray *repoNameArray;
+    NSMutableArray *repoVersionArray;
 	NSMutableArray *buttonArray;
 	NSMutableArray *installedArray;
     UIView *loadingView;
@@ -44,6 +47,7 @@
     [defaults setObject:@"0" forKey:@"appLanguage"];
     [defaults setObject:@[@"http://subdiox.com/repo"] forKey:@"repoArray"];
     [defaults setObject:@[@"BlitzModder"] forKey:@"repoNameArray"];
+    [defaults setObject:@[@"0.0.0"] forKey:@"repoVersionArray"];
 	[defaults setObject:@"0" forKey:@"currentRepo"];
 	[defaults setObject:[NSMutableArray array] forKey:@"modCategoryArray"];
 	[defaults setObject:[NSMutableArray array] forKey:@"modNameArray"];
@@ -52,6 +56,8 @@
 	[defaults setObject:[NSMutableArray array] forKey:@"buttonArray"];
 	[defaults setObject:[NSMutableArray array] forKey:@"installedArray"];
     [defaults setObject:@"0.0.0" forKey:@"blitzVersion"];
+    [defaults setObject:@"0" forKey:@"launchCount"];
+    [defaults setObject:@"NO" forKey:@"neverDonate"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 
 	[self getUserDefaults];
@@ -69,6 +75,7 @@
     [self getUserDefaults];
 	[self checkForUpdate];
     tryingLanguage = 0;
+    launchCount += 1;
     blitzVersion = [self getBlitzVersion];
     [self refreshMods];
 
@@ -133,6 +140,27 @@
 
 	// initialize NSNotificationCenter
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadView) name:@"reloadData" object:nil];
+
+    if (launchCount % 7 == 3 && !neverDonate) {
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Donation Title"] message:[NSString stringWithFormat:@"\n%@",[self BMLocalizedString:@"Donation Message"]] preferredStyle:UIAlertControllerStyleAlert];
+        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK, I will donate"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            neverDonate = YES;
+            [self saveUserDefaults];
+            NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder/contact.html"];
+            [[UIApplication sharedApplication] openURL:url];
+        }]];
+        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Never pop up again"] style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+            neverDonate = YES;
+            [self saveUserDefaults];
+        }]];
+        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Remind me again"] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        }]];
+        NSArray *viewArray = [[[[[[[[[[[[alertController view] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews];
+        UILabel *alertMessage = viewArray[1];
+        [self presentViewController:alertController animated:YES completion:nil];
+        alertMessage.textAlignment = NSTextAlignmentLeft;
+        alertMessage.font = [UIFont systemFontOfSize:13];
+    }
     NSLog(@"BMRootViewController:viewDidLoad.finish");
 }
 
@@ -159,7 +187,6 @@
 - (NSString *)escapeSlash:(NSString *)string {
     NSArray *array = [string componentsSeparatedByString:@"/"];
     return [array componentsJoinedByString:@":"];
-
 }
 
 - (NSString *)escapeRepo:(NSString *)string {
@@ -233,7 +260,8 @@
 // localize strings
 - (NSString *)BMLocalizedString:(NSString *)key {
     NSString *path = [[NSBundle mainBundle] pathForResource:languageArray[appLanguage] ofType:@"lproj"];
-    return [[NSBundle bundleWithPath:path] localizedStringForKey:key value:@"" table:nil];
+    NSString *escapedString = [[NSBundle bundleWithPath:path] localizedStringForKey:key value:@"" table:nil];
+    return [escapedString stringByReplacingOccurrencesOfString:@"\\n" withString: @"\n"];
 }
 
 // make a directory to save temporary files
@@ -314,6 +342,9 @@
 	modCategoryArray = [[ud arrayForKey:@"modCategoryArray"] mutableCopy];
 	modNameArray = [[ud arrayForKey:@"modNameArray"] mutableCopy];
 	modDetailArray = [[ud arrayForKey:@"modDetailArray"] mutableCopy];
+    launchCount = [ud integerForKey:@"launchCount"];
+    neverDonate = [ud boolForKey:@"neverDonate"];
+    repoVersionArray = [[ud arrayForKey:@"repoVersionArray"] mutableCopy];
     NSLog(@"BMRootViewController:getUserDefaults.finish");
 }
 
@@ -333,6 +364,9 @@
 	[ud setObject:[modCategoryArray copy] forKey:@"modCategoryArray"];
 	[ud setObject:[modNameArray copy] forKey:@"modNameArray"];
 	[ud setObject:[modDetailArray copy] forKey:@"modDetailArray"];
+    [ud setInteger:launchCount forKey:@"launchCount"];
+    [ud setBool:neverDonate forKey:@"neverDonate"];
+    [ud setObject:[repoVersionArray copy] forKey:@"repoVersionArray"];
     [ud synchronize];
     NSLog(@"BMRootViewController:saveUserDefaults.finish");
 }
@@ -355,81 +389,131 @@
     NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
     NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/plist/%@.plist",repoArray[currentRepo],tryArray[tryingLanguage]]];
-    NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL
-                                        completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-											if (!error) {
-												NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
-												if (statusCode == 404) {
-                                                    if (tryingLanguage + 1 < [tryArray count]) {
-                                                        tryingLanguage += 1;
-                                                        [self refreshMods];
-                                                    }
-                                                    return;
-	                                            } else {
-	                                                NSFileManager *fm = [NSFileManager defaultManager];
-	                                                NSString *filePath = [NSString stringWithFormat:@"%@/%@/%@.plist",savePath,[self escapeRepo:repoArray[currentRepo]],tryArray[tryingLanguage]];
-	                                                [fm createFileAtPath:filePath contents:data attributes:nil];
-	                                                NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
-	                                                [file writeData:data];
-													MutableOrderedDictionary *dic = [[MutableOrderedDictionary alloc] initWithContentsOfFile:filePath];
-                                                    NSLog(@"dic: %@", dic);
-													modCategoryArray = [NSMutableArray array];
-													modNameArray = [NSMutableArray array];
-													modDetailArray = [NSMutableArray array];
-                                                    [modCategoryArray removeAllObjects];
-                                                    [modNameArray removeAllObjects];
-                                                    [modDetailArray removeAllObjects];
-													modCategoryArray = [[dic allKeys] mutableCopy];
-													for (int i = 0; i < [modCategoryArray count]; i++) {
-                                                        NSString *key1 = modCategoryArray[i];
-                                                        NSLog(@"key1: %@",key1);
-														[modNameArray addObject:[dic[key1] allKeys]];
-														NSMutableArray *tempDetailArray = [NSMutableArray array];
-                                                        [tempDetailArray removeAllObjects];
-														for (int j = 0; j < [modNameArray[i] count]; j++) {
-                                                            NSString *key2 = modNameArray[i][j];
-                                                            NSLog(@"key2: %@",key2);
-                                                            NSMutableArray *keysArray = [NSMutableArray array];
-                                                            NSMutableArray *valuesArray = [NSMutableArray array];
-                                                            [keysArray removeAllObjects];
-                                                            [valuesArray removeAllObjects];
-															keysArray = [[dic[key1][key2] allKeys] mutableCopy];
-															valuesArray = [[dic[key1][key2] allValues] mutableCopy];
-															int current = 0;
-															int removed = 0;
-															while (current < valuesArray.count) {
-																if (![self checkValidate:valuesArray[current]]) {
-																	[keysArray removeObjectAtIndex:current - removed];
-																	removed += 1;
-																}
-																current += 1;
-															}
-                                                            if (keysArray.count == 0) {
-                                                                NSMutableArray *tempNameArray = [NSMutableArray array];
-                                                                [tempNameArray removeAllObjects];
-                                                                tempNameArray = [modNameArray[i] mutableCopy];
-                                                                [tempNameArray removeObjectAtIndex:j];
-                                                                [modNameArray replaceObjectAtIndex:i withObject:tempNameArray];
-                                                                j--;
-                                                            } else {
-                                                                [tempDetailArray addObject:keysArray];
-                                                            }
-														}
-														[modDetailArray addObject:tempDetailArray];
-													}
-													[self saveUserDefaults];
-													dispatch_async(dispatch_get_main_queue(), ^{
-														[self.tableView reloadData];
-													});
-	                                            }
-											} else {
-												[self showError:[self BMLocalizedString:@"Your internet connection seems to be offline."]];
-											}
-                                            finished = YES;
-                                            NSLog(@"BMRootViewController:refreshMods.finish");
-										}];
+    NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+		if (!error) {
+			NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
+			if (statusCode == 404) {
+                if (tryingLanguage + 1 < [tryArray count]) {
+                    tryingLanguage += 1;
+                    [self refreshMods];
+                }
+                return;
+            } else {
+                NSFileManager *fm = [NSFileManager defaultManager];
+                NSString *filePath = [NSString stringWithFormat:@"%@/%@/%@.plist",savePath,[self escapeRepo:repoArray[currentRepo]],tryArray[tryingLanguage]];
+                [fm createFileAtPath:filePath contents:data attributes:nil];
+                NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
+                [file writeData:data];
+				MutableOrderedDictionary *dic = [[MutableOrderedDictionary alloc] initWithContentsOfFile:filePath];
+                NSLog(@"dic: %@", dic);
+				modCategoryArray = [NSMutableArray array];
+				modNameArray = [NSMutableArray array];
+				modDetailArray = [NSMutableArray array];
+                [modCategoryArray removeAllObjects];
+                [modNameArray removeAllObjects];
+                [modDetailArray removeAllObjects];
+				modCategoryArray = [[dic allKeys] mutableCopy];
+				for (int i = 0; i < [modCategoryArray count]; i++) {
+                    NSString *key1 = modCategoryArray[i];
+                    NSLog(@"key1: %@",key1);
+					[modNameArray addObject:[dic[key1] allKeys]];
+					NSMutableArray *tempDetailArray = [NSMutableArray array];
+                    [tempDetailArray removeAllObjects];
+					for (int j = 0; j < [modNameArray[i] count]; j++) {
+                        NSString *key2 = modNameArray[i][j];
+                        NSLog(@"key2: %@",key2);
+                        NSMutableArray *keysArray = [NSMutableArray array];
+                        NSMutableArray *valuesArray = [NSMutableArray array];
+                        [keysArray removeAllObjects];
+                        [valuesArray removeAllObjects];
+						keysArray = [[dic[key1][key2] allKeys] mutableCopy];
+						valuesArray = [[dic[key1][key2] allValues] mutableCopy];
+						int current = 0;
+						int removed = 0;
+						while (current < valuesArray.count) {
+							if (![self checkValidate:valuesArray[current]]) {
+								[keysArray removeObjectAtIndex:current - removed];
+								removed += 1;
+							}
+							current += 1;
+						}
+                        if (keysArray.count == 0) {
+                            NSMutableArray *tempNameArray = [NSMutableArray array];
+                            [tempNameArray removeAllObjects];
+                            tempNameArray = [modNameArray[i] mutableCopy];
+                            [tempNameArray removeObjectAtIndex:j];
+                            [modNameArray replaceObjectAtIndex:i withObject:tempNameArray];
+                            j--;
+                        } else {
+                            [tempDetailArray addObject:keysArray];
+                        }
+					}
+					[modDetailArray addObject:tempDetailArray];
+				}
+                [self getRepoVersion];
+				[self saveUserDefaults];
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self.tableView reloadData];
+				});
+            }
+		} else {
+			[self showError:[self BMLocalizedString:@"Your internet connection seems to be offline."]];
+		}
+        finished = YES;
+        NSLog(@"BMRootViewController:refreshMods.finish");
+	}];
     [task resume];
     while(!finished) {}
+}
+
+- (void)getRepoVersion {
+    NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
+    NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/info.plist",repoArray[currentRepo]]];
+    NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (!error) {
+            NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
+			if (statusCode == 404) {
+                repoVersionArray[currentRepo] = @"0.0.0";
+            } else {
+                NSFileManager *fm = [NSFileManager defaultManager];
+                NSString *filePath = [NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@/info.plist",[self escapeRepo:repoArray[currentRepo]]];
+                [fm createFileAtPath:filePath contents:data attributes:nil];
+                NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
+                [file writeData:data];
+                NSDictionary *dic = [[NSDictionary alloc] initWithContentsOfFile:filePath];
+                if ([self convertVersion:repoVersionArray[currentRepo]] < [self convertVersion:[dic objectForKey:@"version"]]) {
+                    [self showChangelog:[dic objectForKey:@"version"]];
+                }
+            }
+        }
+    }];
+    [task resume];
+}
+
+- (void)showChangelog:(NSString *)latestVersion {
+    NSURLSessionConfiguration* config = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
+    NSURL *requestURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/changelog.txt",repoArray[currentRepo]]];
+    NSURLSessionDataTask *task = [session dataTaskWithURL:requestURL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (!error) {
+            NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
+			if (statusCode != 404) {
+                NSString *changelog = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Changes"] message:[NSString stringWithFormat:@"\n%@",changelog] preferredStyle:UIAlertControllerStyleAlert];
+                [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                    repoVersionArray[currentRepo] = latestVersion;
+                    [self saveUserDefaults];
+                }]];
+                NSArray *viewArray = [[[[[[[[[[[[alertController view] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews];
+                UILabel *alertMessage = viewArray[1];
+                [self presentViewController:alertController animated:YES completion:nil];
+                alertMessage.textAlignment = NSTextAlignmentLeft;
+                alertMessage.font = [UIFont systemFontOfSize:12];
+            }
+        }
+    }];
+    [task resume];
 }
 
 - (NSString *)getBlitzVersion {

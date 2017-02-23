@@ -112,5 +112,9 @@
 	<string>You are using the newer version than latest one. Please report this to subdiox.</string>
 	<key>File Not Found(404)! Please contact the owner of this repository.\n</key>
 	<string>File Not Found(404)! Please contact the owner of this repository.\n</string>
+	<key>Donation Title</key>
+	<string>Please make a donation</string>
+	<key>Donation Message</key>
+	<string>Thank you for using BlitzModder.\nI maintain my app and server by myself, but they cost me some money (for example, server fee).\nIf you like my app, please consider donating me.\nYou can donate me on Paypal, or you can send me some gold in game.\nI am playing in Asia(SEA) server as 'BlitzModder'.\nIf you want to be my friend, please don't hesitate to send me a friend request.</string>
 </dict>
 </plist>
