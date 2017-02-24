@@ -17,12 +17,30 @@
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-	<key>CFBundleIconFile</key>
-	<string>icon.png</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>iPhoneOS</string>
 	</array>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>Icon-App-20x20</string>
+				<string>Icon-App-29x29</string>
+				<string>Icon-App-40x40</string>
+				<string>Icon-App-57x57</string>
+				<string>Icon-App-60x60</string>
+				<string>Icon-App-72x72</string>
+				<string>Icon-App-76x76</string>
+				<string>Icon-App-83.5x83.5</string>
+				<string>Icon-Small-50x50</string>
+			</array>
+			<key>UIPrerenderedIcon</key>
+			<false/>
+		</dict>
+	</dict>
 	<key>CFBundleVersion</key>
 	<string>2.6.0</string>
 	<key>LSRequiresIPhoneOS</key>
