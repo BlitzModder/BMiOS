@@ -122,9 +122,9 @@
 	<string>BlitzModderをご使用いただきありがとうございます。私は一人でこのアプリとBlitzModder用サーバーを運営しておりますが、実は毎月サーバー代などがかかっております。このアプリを気に入っていただいた方は、寄付をご考慮いただけないでしょうか。Paypalでも寄付できますし、ゲーム内でゴールドを送ることもできます。私はアジアサーバーで'BlitzModder'というIGNでプレイしております。私とフレンドになりたい場合も、遠慮せずフレンドリクエストを送ってください。</string>
 	<key>OK, I will donate</key>
 	<string>寄付する</string>
-	<key>Remind me again</key>
+	<key>Remind me later</key>
 	<string>あとで答える</string>
-	<key>Never pop up again</key>
+	<key>No, I won't donate</key>
 	<string>寄付はしない</string>
 	<key>Donate Developer</key>
 	<string>開発者に寄付する</string>

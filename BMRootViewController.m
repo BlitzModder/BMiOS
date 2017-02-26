@@ -149,11 +149,11 @@
             NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder/contact.html"];
             [[UIApplication sharedApplication] openURL:url];
         }]];
-        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Never pop up again"] style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"No, I won't donate"] style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
             neverDonate = YES;
             [self saveUserDefaults];
         }]];
-        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Remind me again"] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"Remind me later"] style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
         }]];
         NSArray *viewArray = [[[[[[[[[[[[alertController view] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews] firstObject] subviews];
         UILabel *alertMessage = viewArray[1];
@@ -308,8 +308,6 @@
 													NSLog(@"appVersion:%@,latestVersion:%@",appVersion,latestVersion);
 													if ([self convertVersion:appVersion] < [self convertVersion:latestVersion]) {
 														[self showError:[self BMLocalizedString:@"New version of BlitzModder is available. Please go to Cydia to get the update."]];
-													} else if ([self convertVersion:appVersion] > [self convertVersion:latestVersion]) {
-														[self showError:[self BMLocalizedString:@"You are using the newer version than latest one. Please report this to subdiox."]];
 													}
 	                                            }
 											}}];

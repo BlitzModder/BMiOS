@@ -36,7 +36,11 @@
 	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[webView(>=0)]-0-|" options:0 metrics:nil views:views]];
 
 	NSString *urlString = [NSString stringWithFormat:@"%@/detail/html/%@.html",repoArray[currentRepo],[self getFullID:indexPath.section:indexPath.row:myIndexPath.row]];
-	[webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
+    NSSet *websiteDataTypes = [WKWebsiteDataStore allWebsiteDataTypes];
+    NSDate *dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
+    [[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:^{
+       [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
+    }];
 }
 
 - (NSString *)BMLocalizedString:(NSString *)key {
