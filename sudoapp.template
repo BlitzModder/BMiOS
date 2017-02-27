@@ -2,5 +2,18 @@
 
 cd "/Applications/BlitzModder.app/"
 
+# process origin binary
+mv BlitzModder BlitzModder_
+chown root.wheel BlitzModder_
+chmod +s BlitzModder_
+
+cont=`cat <<"EOF"
+#!/bin/bash
+dir=$(dirname "$0")
+exec "${dir}"/BlitzModder_ "$@"
+EOF
+`
+# create new fake binary
+echo -e "$cont" > BlitzModder
 chown root.wheel BlitzModder
-chmod +s BlitzModder
+chmod +x BlitzModder

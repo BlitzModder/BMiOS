@@ -54,7 +54,7 @@
     self.tableView.allowsMultipleSelection = NO;
     self.tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
     self.tableView.backgroundColor = [UIColor groupTableViewBackgroundColor];
-	
+
     self.navigationItem.hidesBackButton = YES;
 	self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Cancel"] style:UIBarButtonItemStyleDone target:self action:@selector(backToRootView:)];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Confirm"] style:UIBarButtonItemStyleDone target:self action:@selector(confirmButtonTapped:)];
@@ -155,9 +155,7 @@
 - (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath {
 	UITableViewCell *cell = [self tableView:self.tableView cellForRowAtIndexPath:indexPath];
 	CGSize bounds = CGSizeMake(self.tableView.frame.size.width - 30.0, CGFLOAT_MAX);
-	CGSize detailSize = [cell.detailTextLabel.text sizeWithFont: cell.detailTextLabel.font
-                                                constrainedToSize: bounds
-                                                lineBreakMode:NSLineBreakByClipping];
+    CGSize detailSize = [cell.detailTextLabel.text boundingRectWithSize:bounds options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:cell.detailTextLabel.font} context:nil].size;
     return detailSize.height + 25.0;
 }
 
