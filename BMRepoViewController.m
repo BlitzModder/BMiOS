@@ -71,14 +71,13 @@
 - (NSString *)getFullRepo:(NSString *)repoName {
     NSString *repo;
     if ([repoName hasPrefix:@"http://"] || [repoName hasPrefix:@"https://"]) {
-        repo = repoName;
-        if ([repoName hasSuffix:@"/"]) {
+;        if ([repoName hasSuffix:@"/"]) {
             repo = [repoName substringToIndex:repoName.length - 1];
         } else {
             repo = repoName;
         }
     } else {
-        NSArray *array = [repo componentsSeparatedByString:@"/"];
+        NSArray *array = [repoName componentsSeparatedByString:@"/"];
         if (array.count == 1) {
             repo = [NSString stringWithFormat:@"http://%@.github.io/BMRepository", array[0]];
         } else if (array.count == 2) {
