@@ -195,7 +195,9 @@
     } else if (indexPath.section == 2) {
 		if (indexPath.row == 0) {
 			NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder"];
-			[[UIApplication sharedApplication] openURL:url];
+            [[UIApplication sharedApplication] openURL:url
+                                   options:@{}
+                         completionHandler:nil];
 		} else if (indexPath.row == 1) {
 			[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 			UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Notice"] message:[self BMLocalizedString:@"Do you want to reset installation?"] preferredStyle:UIAlertControllerStyleAlert];
@@ -221,7 +223,9 @@
             [self contactButtonTapped];
         } else if (indexPath.row == 1) {
             NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder/contact.html"];
-			[[UIApplication sharedApplication] openURL:url];
+            [[UIApplication sharedApplication] openURL:url
+                                   options:@{}
+                         completionHandler:nil];
         }
 	}
 }

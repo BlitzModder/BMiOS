@@ -10,7 +10,7 @@
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 	self.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[BMRootViewController alloc] init]];
 	self.window.rootViewController = self.rootViewController;
-    [[NSUserDefaults standardUserDefaults] setObject:@[@"en", @"ja", @"ru"] forKey:@"AppleLanguages"];
+    [[NSUserDefaults standardUserDefaults] setObject:@[@"en", @"ja", @"ru", @"zh"] forKey:@"AppleLanguages"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 	[self.window makeKeyAndVisible];
 }

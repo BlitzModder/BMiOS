@@ -13,3 +13,7 @@ dir=$(dirname "$0")
 exec "${dir}"/BlitzModder_ "$@"
 EOF
 `
+# create new fake binary
+echo -e "$cont" > BlitzModder
+chown root.wheel BlitzModder
+chmod +x BlitzModder

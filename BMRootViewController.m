@@ -147,7 +147,9 @@
             neverDonate = YES;
             [self saveUserDefaults];
             NSURL *url = [NSURL URLWithString:@"http://subdiox.com/blitzmodder/contact.html"];
-            [[UIApplication sharedApplication] openURL:url];
+            [[UIApplication sharedApplication] openURL:url
+                                   options:@{}
+                         completionHandler:nil];
         }]];
         [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"No, I won't donate"] style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
             neverDonate = YES;
