@@ -1,5 +1,5 @@
 ARCHS = armv7 armv7s arm64
-TARGET = ::latest:latest
+TARGET = ::latest:8.0
 
 include $(THEOS)/makefiles/common.mk
 
