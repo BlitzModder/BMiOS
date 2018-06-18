@@ -1,10 +1,10 @@
+#import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import <MessageUI/MFMailComposeViewController.h>
 #import <sys/utsname.h>
 #import "BMRootViewController.h"
 #import "BMRepoViewController.h"
 #import "BMSettingsViewController.h"
-#import "NSTask.h"
 
 @interface BMSettingsViewController()
 
@@ -14,11 +14,12 @@
     NSInteger appLanguage;
     NSArray *languageArray;
 	NSInteger currentRepo;
+    NSString *savePath;
 	NSMutableArray *repoArray;
 }
-- (void)loadView {
+- (void)viewDidLoad {
     NSLog(@"BMSettingsViewController:loadView.start");
-	[super loadView];
+	[super viewDidLoad];
     [self getUserDefaults];
     self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
 	self.tableView.alwaysBounceVertical = YES;
@@ -29,6 +30,7 @@
 
 	self.navigationItem.hidesBackButton = YES;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[self BMLocalizedString:@"Done"] style:UIBarButtonItemStyleDone target:self action:@selector(doneButtonTapped:)];
+    savePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSLog(@"BMSettingsViewController:loadView.finish");
 }
 
@@ -246,27 +248,8 @@
 }
 
 - (void)removeTempDir {
-	NSTask *task = [[NSTask alloc] init];
-	NSPipe *pipe = [NSPipe pipe];
-	[task setStandardOutput:pipe];
-	NSPipe *errPipe = [NSPipe pipe];
-	[task setStandardError:errPipe];
-	[task setLaunchPath: @"/bin/sh"];
-	NSString *commandString = @"rm -rf /var/root/Library/Caches/BlitzModder";
-	[task setArguments:[NSArray arrayWithObjects:@"-c",commandString,nil]];
-	[task launch];
-	NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-	if (data != nil && [data length]) {
-		NSString *strOut = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-		strOut = [NSString stringWithFormat:@"%@\n",strOut];
-		NSLog(@"%@",strOut);
-	}
-	data = [[errPipe fileHandleForReading] readDataToEndOfFile];
-	if (data != nil && [data length]) {
-		NSString *strErr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-		strErr = [NSString stringWithFormat:@"%@\n",strErr];
-		[self showError:strErr];
-	}
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm removeItemAtPath:savePath error:nil];
 }
 - (void)showError:(NSString *)errorMessage {
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Error"] message:errorMessage preferredStyle:UIAlertControllerStyleAlert];
@@ -280,8 +263,6 @@
     picker.mailComposeDelegate = self;
 	[picker setToRecipients:[NSArray arrayWithObjects:@"subdiox@gmail.com", nil]];
     [picker setSubject:[self BMLocalizedString:@"BlitzModder Support"]];
-	NSData *plistData = [NSData dataWithContentsOfFile:@"/var/root/Library/Preferences/com.subdiox.blitzmodder.plist"];
-    [picker addAttachmentData:plistData mimeType:@"application/x-plist" fileName:@"com.subdiox.blitzmodder.plist"];
 	[picker setMessageBody:[NSString stringWithFormat:[self BMLocalizedString:@"\n\n\n\n\nDevice: %@\niOS Version: %@\nApp Version: %@"], [self platformString], [self iOSVersion], [self appVersion]] isHTML:NO];
     [self presentViewController:picker animated:YES completion:nil];
 }

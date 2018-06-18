@@ -2,10 +2,9 @@ Author: subdiox <subdiox@gmail.com>
 Maintainer: subdiox <subdiox@gmail.com>
 Name: BlitzModder
 Package: com.subdiox.blitzmodder
-Depends: coreutils-bin,unzip
 Breaks: org.coolstar.stash933
 Section: Utilities
-Version: 2.6.5
+Version: 2.7.0
 Architecture: iphoneos-arm
 Description: Mod Manager for World of Tanks Blitz
 Depiction: Mod Manager for Blitz

@@ -1,6 +1,7 @@
+#import <UIKit/UIKit.h>
+
 #import "BMRepoViewController.h"
 #import "SVProgressHUD/SVProgressHUD.h"
-#import "NSTask.h"
 
 @interface BMRepoViewController()
 @end
@@ -11,18 +12,20 @@
     NSMutableArray *repoArray;
     NSMutableArray *repoNameArray;
     NSMutableArray *repoVersionArray;
+    NSString *savePath;
     BOOL exists;
     BOOL okRepo;
     BOOL downloaded;
     BOOL checked;
 }
 
-- (void)loadView {
-    [super loadView];
+- (void)viewDidLoad {
+    [super viewDidLoad];
 	[self getUserDefaults];
     self.title = [self BMLocalizedString:@"Repository List"];
 	self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addButtonTapped:)];
+    savePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     [self getUserDefaults];
 }
 
@@ -153,7 +156,7 @@
 												if (statusCode != 404) {
                                                     [self makeRepoDirectory:[self escapeRepo:repo]];
                                                     NSFileManager *fm = [NSFileManager defaultManager];
-	                                                NSString *filePath = [NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@/info.plist",[self escapeRepo:repo]];
+	                                                NSString *filePath = [NSString stringWithFormat:@"%@/%@/info.plist",savePath,[self escapeRepo:repo]];
 	                                                [fm createFileAtPath:filePath contents:data attributes:nil];
 	                                                NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
 	                                                [file writeData:data];
@@ -170,24 +173,8 @@
 
 // make a directory to save repo files
 - (void)makeRepoDirectory:(NSString *)repo {
-    NSTask *task = [[NSTask alloc] init];
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    NSPipe *errPipe = [NSPipe pipe];
-    [task setStandardError:errPipe];
-    [task setLaunchPath: @"/bin/mkdir"];
-    [task setStandardOutput:pipe];
-    [task setArguments:[NSArray arrayWithObjects:@"-p",[NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@", repo], nil]];
-    [task launch];
-    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-    data = [[errPipe fileHandleForReading] readDataToEndOfFile];
-    if (data != nil && [data length]) {
-        NSString *strErr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Error"] message:strErr preferredStyle:UIAlertControllerStyleAlert];
-        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        }]];
-        [self presentViewController:alertController animated:YES completion:nil];
-    }
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm createDirectoryAtPath:[NSString stringWithFormat:@"%@/%@",savePath,repo] withIntermediateDirectories:YES attributes:nil error:nil];
 }
 
 - (void)showError:(NSString *)errorMessage {

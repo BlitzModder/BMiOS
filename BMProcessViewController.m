@@ -1,13 +1,14 @@
+#import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
-#import "NSTask.h"
 #import "BMRootViewController.h"
 #import "BMProcessViewController.h"
+#import "SSZipArchive/SSZipArchive.h"
 
 @implementation BMProcessViewController {
     bool success;
     bool downloadFinished;
-    int currentRepo;
-    int appLanguage;
+    NSInteger currentRepo;
+    NSInteger appLanguage;
 	NSString *blitzPath;
 	NSString *savePath;
     NSArray *languageArray;
@@ -25,14 +26,14 @@
 @synthesize removeQueueArray;
 @synthesize installQueueArray;
 
-- (void)loadView {
-	[super loadView];
+- (void)viewDidLoad {
+	[super viewDidLoad];
     [self getUserDefaults];
     success = 1;
     self.title = [self BMLocalizedString:@"Running"];
     self.navigationItem.hidesBackButton = YES;
 
-	savePath = @"/var/root/Library/Caches/BlitzModder";
+	savePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 
     NSTextStorage *textStorage = [NSTextStorage new];
     NSLayoutManager *layoutManager = [NSLayoutManager new];
@@ -242,28 +243,26 @@
 }
 
 - (void)install {
-    NSTask *task = [[NSTask alloc] init];
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    NSPipe *errPipe = [NSPipe pipe];
-    [task setStandardError:errPipe];
-    [task setLaunchPath: @"/bin/sh"];
-    NSString *commandString = [NSString stringWithFormat:@"unzip -o %@/Data.zip -d %@ && cp -rf %@/Data -T %@/Data && rm -rf %@/Data %@/Data.zip",savePath,savePath,savePath,blitzPath,savePath,savePath];
-    [task setArguments:[NSArray arrayWithObjects:@"-c",commandString,nil]];
-    [task launch];
-    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-    if (data != nil && [data length]) {
-        NSString *strOut = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        strOut = [NSString stringWithFormat:@"%@\n",strOut];
-        NSLog(@"%@",strOut);
+    [SSZipArchive unzipFileAtPath:[NSString stringWithFormat:@"%@/Data.zip", savePath] toDestination:savePath];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm setDelegate:self];
+    [fm copyItemAtPath:[NSString stringWithFormat:@"%@/Data", savePath] toPath:[NSString stringWithFormat:@"%@/Data", blitzPath] error:nil];
+    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Data", savePath] error:nil];
+    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Data.zip", savePath] error:nil];
+}
+
+- (BOOL)fileManager:(NSFileManager *)fileManager shouldProceedAfterError:(NSError *)error copyingItemAtPath:(NSString *)srcPath toPath:(NSString *)dstPath{
+    if ([error code] == NSFileWriteFileExistsError) {
+        BOOL dir;
+        if ([fileManager fileExistsAtPath:dstPath isDirectory:&dir]) {
+            if (!dir) {
+                [fileManager removeItemAtPath:dstPath error:&error];
+                [fileManager copyItemAtPath:srcPath toPath:dstPath error:&error];
+            }
+        }
+        return YES;
     }
-    data = [[errPipe fileHandleForReading] readDataToEndOfFile];
-    if (data != nil && [data length]) {
-        success = NO;
-        NSString *strErr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        strErr = [NSString stringWithFormat:@"%@\n",strErr];
-        [self writeTextView:strErr];
-    }
+    return NO;
 }
 
 - (void)writeTextView:(NSString *)log {

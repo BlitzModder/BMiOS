@@ -1,11 +1,11 @@
+#import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
-#import "BMAppDelegate.h"
 #import "BMSecondViewController.h"
 #import "BMThirdViewController.h"
 
 @implementation BMThirdViewController {
-    int currentRepo;
-	int appLanguage;
+    NSInteger currentRepo;
+	NSInteger appLanguage;
 	NSArray *languageArray;
     NSMutableArray *repoArray;
 	NSMutableArray *modNameArray;
@@ -48,11 +48,11 @@
     return [[NSBundle bundleWithPath:path] localizedStringForKey:key value:@"" table:nil];
 }
 
-- (NSString *)getFullString :(int)i :(int)j :(int)k {
+- (NSString *)getFullString :(NSInteger)i :(NSInteger)j :(NSInteger)k {
 	return [self getString:modDetailArray[i][j][k]];
 }
 
-- (NSString *)getFullID :(int)i :(int)j :(int)k {
+- (NSString *)getFullID :(NSInteger)i :(NSInteger)j :(NSInteger)k {
 	return [NSString stringWithFormat:@"%@.%@.%@",[self getID:modCategoryArray[i]],[self getID:modNameArray[i][j]],[self getID:modDetailArray[i][j][k]]];
 }
 

@@ -1,6 +1,5 @@
+#import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
-#import "NSTask.h"
-#import "BMAppDelegate.h"
 #import "BMRootViewController.h"
 #import "BMSecondViewController.h"
 #import "BMProcessViewController.h"
@@ -18,10 +17,10 @@
     bool success;
     bool finished;
     bool neverDonate;
- 	int currentRepo;
-	int appLanguage;
-    int tryingLanguage;
-    int launchCount;
+ 	NSInteger currentRepo;
+	NSInteger appLanguage;
+    NSInteger tryingLanguage;
+    NSInteger launchCount;
 	NSString *savePath;
 	NSString *blitzPath;
     NSString *blitzVersion;
@@ -61,13 +60,13 @@
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 
 	[self getUserDefaults];
-    NSLog(@"repoArray: %@, repoNameArray: %@, currentRepo: %d", repoArray, repoNameArray, currentRepo);
+    NSLog(@"repoArray: %@, repoNameArray: %@, currentRepo: %ld", repoArray, repoNameArray, (long)currentRepo);
 	if (![repoArray[0] isEqualToString:@"http://subdiox.com/repo"] || ![repoNameArray[0] isEqualToString:@"BlitzModder"]) {
 		repoArray[0] = @"http://subdiox.com/repo";
         repoNameArray[0] = @"BlitzModder";
 		[self saveUserDefaults];
 	}
-	savePath = @"/var/root/Library/Caches/BlitzModder";
+    savePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 
 	// run methods
 	[self checkBlitzExists];
@@ -198,24 +197,8 @@
 // make a directory to save repo files
 - (void)makeRepoDirectory:(NSString *)repo {
     NSLog(@"BMRootViewController:makeRepoDirectory.start");
-    NSTask *task = [[NSTask alloc] init];
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    NSPipe *errPipe = [NSPipe pipe];
-    [task setStandardError:errPipe];
-    [task setLaunchPath: @"/bin/mkdir"];
-    [task setStandardOutput:pipe];
-    [task setArguments:[NSArray arrayWithObjects:@"-p",[NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@", repo], nil]];
-    [task launch];
-    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-    data = [[errPipe fileHandleForReading] readDataToEndOfFile];
-    if (data != nil && [data length]) {
-        NSString *strErr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Error"] message:strErr preferredStyle:UIAlertControllerStyleAlert];
-        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        }]];
-        [self presentViewController:alertController animated:YES completion:nil];
-    }
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm createDirectoryAtPath:[NSString stringWithFormat:@"%@/%@",savePath,repo] withIntermediateDirectories:YES attributes:nil error:nil];
     NSLog(@"BMRootViewController:makeRepoDirectory.finish");
 }
 
@@ -269,24 +252,8 @@
 // make a directory to save temporary files
 - (void)makeSaveDirectory {
     NSLog(@"BMRootViewController:makeSaveDirectory.start");
-    NSTask *task = [[NSTask alloc] init];
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    NSPipe *errPipe = [NSPipe pipe];
-    [task setStandardError:errPipe];
-    [task setLaunchPath: @"/bin/mkdir"];
-    [task setStandardOutput:pipe];
-    [task setArguments:[NSArray arrayWithObjects:@"-p",savePath,nil]];
-    [task launch];
-    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-    data = [[errPipe fileHandleForReading] readDataToEndOfFile];
-    if (data != nil && [data length]) {
-        NSString *strErr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Error"] message:strErr preferredStyle:UIAlertControllerStyleAlert];
-        [alertController addAction:[UIAlertAction actionWithTitle:[self BMLocalizedString:@"OK"] style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        }]];
-        [self presentViewController:alertController animated:YES completion:nil];
-    }
+    NSFileManager *fm = [NSFileManager defaultManager];
+    [fm createDirectoryAtPath:savePath withIntermediateDirectories:YES attributes:nil error:nil];
     NSLog(@"BMRootViewController:makeSaveDirectory.finish");
 }
 
@@ -305,7 +272,7 @@
 	                                                    return;
 	                                                });
 	                                            } else {
-													NSString *appVersion = [[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"];
+													NSString *appVersion = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
 													NSString *latestVersion = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 													NSLog(@"appVersion:%@,latestVersion:%@",appVersion,latestVersion);
 													if ([self convertVersion:appVersion] < [self convertVersion:latestVersion]) {
@@ -477,7 +444,7 @@
                 repoVersionArray[currentRepo] = @"0.0.0";
             } else {
                 NSFileManager *fm = [NSFileManager defaultManager];
-                NSString *filePath = [NSString stringWithFormat:@"/var/root/Library/Caches/BlitzModder/%@/info.plist",[self escapeRepo:repoArray[currentRepo]]];
+                NSString *filePath = [NSString stringWithFormat:@"%@/%@/info.plist",savePath,[self escapeRepo:repoArray[currentRepo]]];
                 [fm createFileAtPath:filePath contents:data attributes:nil];
                 NSFileHandle *file = [NSFileHandle fileHandleForWritingAtPath:filePath];
                 [file writeData:data];
@@ -586,21 +553,32 @@
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Warning"] message:[self BMLocalizedString:@"Your iOS Version is not supported.\nPlease update to iOS9 and jailbreak again."] preferredStyle:UIAlertControllerStyleAlert];
         [self presentViewController:alertController animated:YES completion:nil];
     }
-    NSTask *task = [[NSTask alloc] init];
-    NSPipe *pipe = [[NSPipe alloc] init];
-    [task setLaunchPath: @"/usr/bin/find"];
-    [task setStandardOutput:pipe];
-    [task setArguments:[NSArray arrayWithObjects:appsPath,@"-maxdepth",@"2",@"-name",@"wotblitz.app", nil]];
-    [task launch];
-    NSFileHandle *handle = [pipe fileHandleForReading];
-    NSData *data = [handle readDataToEndOfFile];
-    blitzPath = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    
+    [self findBlitz:appsPath];
     if ([blitzPath isEqualToString:@""]) {
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[self BMLocalizedString:@"Warning"] message:[self BMLocalizedString:@"World of Tanks Blitz is not installed.\nPlease install it from App Store."] preferredStyle:UIAlertControllerStyleAlert];
         [self presentViewController:alertController animated:YES completion:nil];
     }
 	[self saveUserDefaults];
     NSLog(@"BMRootViewController:checkBlitzExists.finish");
+}
+
+- (void)findBlitz:(NSString*)appsPath {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    for (NSString *path in [fm contentsOfDirectoryAtPath:appsPath error:nil]) {
+        BOOL dir;
+        NSString *absolutePath = [NSString stringWithFormat:@"%@/%@",appsPath,path];
+        if ([fm fileExistsAtPath:absolutePath isDirectory:&dir]) {
+            if (dir) {
+                for (NSString *path2 in [fm contentsOfDirectoryAtPath:absolutePath error:nil]) {
+                    NSString *absolutePath2 = [NSString stringWithFormat:@"%@/%@",absolutePath,path2];
+                    if ([absolutePath2 hasSuffix:@"wotblitz.app"]) {
+                        blitzPath = absolutePath2;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // called when Apply button is tapped
@@ -682,6 +660,7 @@
 
 // deselect row when view appears
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
     [self.tableView deselectRowAtIndexPath:self.tableView.indexPathForSelectedRow animated:YES];
 }
 

@@ -1,3 +1,4 @@
+#import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import "BMRootViewController.h"
 #import "BMProcessViewController.h"
@@ -7,8 +8,8 @@
 @end
 
 @implementation BMConfirmationViewController {
-    int appLanguage;
-	int currentRepo;
+    NSInteger appLanguage;
+	NSInteger currentRepo;
 	NSString *removeList;
 	NSString *installList;
 	NSArray *languageArray;

@@ -1,12 +1,12 @@
-#import "BMAppDelegate.h"
+#import <UIKit/UIKit.h>
+
 #import "BMRootViewController.h"
 #import "BMSecondViewController.h"
 #import "BMThirdViewController.h"
-#import "NSTask.h"
 
 @implementation BMSecondViewController {
-    int currentRepo;
-	int appLanguage;
+    NSInteger currentRepo;
+	NSInteger appLanguage;
 	NSArray *languageArray;
     NSMutableArray *repoArray;
 	NSMutableArray *modNameArray;
@@ -41,9 +41,9 @@
 
 - (void)changeSwitch:(id)sender {
     NSIndexPath *myIndexPath = [self.tableView indexPathForCell:(UITableViewCell*)[sender superview]];
-	int i = indexPath.section;
-	int j = indexPath.row;
-	int k = myIndexPath.row;
+	NSInteger i = indexPath.section;
+	NSInteger j = indexPath.row;
+	NSInteger k = myIndexPath.row;
     UISwitch *sw = (UISwitch *)sender;
     if (sw.on == YES) {
 		[buttonArray addObject:[self getSaveID:i:j:k]];
@@ -54,9 +54,9 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)myIndexPath {
-	int i = indexPath.section;
-	int j = indexPath.row;
-	int k = myIndexPath.row;
+	NSInteger i = indexPath.section;
+	NSInteger j = indexPath.row;
+	NSInteger k = myIndexPath.row;
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
 	if (!cell) {
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"Cell"];
@@ -104,15 +104,15 @@
     return UIModalPresentationNone;
 }
 
-- (NSString *)getFullString :(int)i :(int)j :(int)k {
+- (NSString *)getFullString :(NSInteger)i :(NSInteger)j :(NSInteger)k {
 	return [self getString:modDetailArray[i][j][k]];
 }
 
-- (NSString *)getFullID :(int)i :(int)j :(int)k {
+- (NSString *)getFullID :(NSInteger)i :(NSInteger)j :(NSInteger)k {
 	return [NSString stringWithFormat:@"%@.%@.%@",[self getID:modCategoryArray[i]],[self getID:modNameArray[i][j]],[self getID:modDetailArray[i][j][k]]];
 }
 
-- (NSString *)getSaveID :(int)i :(int)j :(int)k {
+- (NSString *)getSaveID :(NSInteger)i :(NSInteger)j :(NSInteger)k {
 	return [NSString stringWithFormat:@"%@.%@",[self escapeRepo:repoArray[currentRepo]],[self getFullID:i:j:k]];
 }
 
